@@ -102,7 +102,7 @@ app.put("/admin/courses/:courseId", async (req, res) => {
 
 app.get("/admin/courses", authenticateJwt, async (req, res) => {
   // logic to get all courses
-  const course = await Course.find({});
+  const course = await Course.findOne({ username: req.user.username });
   res.json({ course });
 });
 
@@ -168,8 +168,16 @@ app.post("/users/courses/:courseId", authenticateJwt, async (req, res) => {
   }
 });
 
-app.get("/users/purchasedCourses", (req, res) => {
+app.get("/users/purchasedCourses", authenticateJwt, async (req, res) => {
   // logic to view purchased courses
+  const user = await User.findOne({ username: req.user.username }).populate(
+    "purchasedCourses"
+  );
+  if (user) {
+    res.json({ purchasedCourses: user.purchasedCourses || [] });
+  } else {
+    res.status(403).json({ message: "User not found" });
+  }
 });
 
 app.listen(3000, () => {
